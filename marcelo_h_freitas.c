@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// Estrutura para armazenar informações de uma pessoa
 typedef struct
 {
     char nome_pessoa[200];
@@ -16,23 +15,22 @@ typedef struct
     char sigla_ies_titulacao[20];
 } Pessoa;
 
-// Estrutura para o nó da árvore
 typedef struct
 {
     Pessoa pessoa;
-    int esq; // Indica a posição do nó esquerdo no arquivo
-    int dir; // Indica a posição do nó direito no arquivo
+    int esq;
+    int dir;
 } NoArvore;
 
 typedef struct
 {
-    int raiz; // Raiz da árvore (índice no arquivo)
-    int prox; // Próxima posição livre no arquivo
+    int raiz;
+    int prox;
 } CabecalhoArvore;
 
 FILE *abre_arquivo(const char *nome)
 {
-    FILE *arq = fopen(nome, "rb"); // Abrir o arquivo em modo de leitura binária
+    FILE *arq = fopen(nome, "rb");
     if (arq == NULL)
     {
         perror("Erro ao abrir o arquivo");
@@ -54,13 +52,12 @@ int insereNoArquivo(FILE *arq, Pessoa pessoa)
 {
     fseek(arq, 0, SEEK_SET);
 
-    // Carrega o cabeçalho
     CabecalhoArvore cab;
     fread(&cab, sizeof(CabecalhoArvore), 1, arq);
 
     NoArvore novoNo;
     novoNo.pessoa = pessoa;
-    novoNo.esq = novoNo.dir = -1; // Inicialmente, sem filhos
+    novoNo.esq = novoNo.dir = -1;
 
     if (cab.raiz == -1)
     { // Se a árvore estiver vazia
@@ -70,7 +67,7 @@ int insereNoArquivo(FILE *arq, Pessoa pessoa)
     }
     else
     {
-        // Percorre a árvore para inserir no local correto
+        // Se não, percorre a árvore para inserir no local correto
         int atual = cab.raiz;
         int pai = -1;
         int direcao = 0;
@@ -95,7 +92,7 @@ int insereNoArquivo(FILE *arq, Pessoa pessoa)
             }
             else
             {
-                return 0; // Código já existe na árvore
+                return 0;
             }
         }
 
@@ -130,12 +127,10 @@ int insereNoArquivo(FILE *arq, Pessoa pessoa)
     return 1;
 }
 
-// Função para buscar um nó no arquivo
 int buscaNoArquivo(FILE *arq, long long codigo)
 {
     fseek(arq, 0, SEEK_SET);
 
-    // Carrega o cabeçalho
     CabecalhoArvore cab;
     fread(&cab, sizeof(CabecalhoArvore), 1, arq);
 
@@ -149,15 +144,14 @@ int buscaNoArquivo(FILE *arq, long long codigo)
 
         if (codigo == noAtual.pessoa.codigo)
         {
-            // Pessoa encontrada, aplicar a função verificar
-            int destino = verificar(noAtual.pessoa);
+            int destino = verificar(noAtual.pessoa); // verifica o destino da pessoa
 
             // Exibir o destino e informações adicionais
-            printf("\nPessoa Encontrada: \n");
-            printf("Nome: %s\n", noAtual.pessoa.nome_pessoa);
-            printf("Ano de Titulação: %d\n", noAtual.pessoa.ano_titulacao);
-            printf("Grau Acadêmico: %s\n", noAtual.pessoa.grau_academico);
-            printf("Código: %lld\n", noAtual.pessoa.codigo);
+            // printf("\nPessoa Encontrada: \n");
+            // printf("Nome: %s\n", noAtual.pessoa.nome_pessoa);
+            // printf("Ano de Titulação: %d\n", noAtual.pessoa.ano_titulacao);
+            // printf("Grau Acadêmico: %s\n", noAtual.pessoa.grau_academico);
+            // printf("Código: %lld\n", noAtual.pessoa.codigo);
 
             // Exibir o destino com base nas verificações
             if (destino == 0)
@@ -182,19 +176,18 @@ int buscaNoArquivo(FILE *arq, long long codigo)
     }
 
     printf("Código não encontrado.\n");
-    return 0; // Não encontrado
+    return 0;
 }
 
 int verificar(Pessoa pessoa)
 {
-    // Verificação de ausência de informações
     if (strlen(pessoa.grau_academico) == 0 || pessoa.ano_titulacao == 0 || strlen(pessoa.pais_ies_titulacao) == 0 || strlen(pessoa.nome_ies_titulacao) == 0)
     {
-        return 0; // Faltando informações, retorno 0
+        return 0;
     }
 
-    // Verificação de titulação com menos de 2 anos
-    int ano_atual = 2024; // Substitua pelo ano atual dinamicamente, se necessário
+    int ano_atual = 2024; // Ano atual
+
     if ((ano_atual - pessoa.ano_titulacao) < 2)
     {
         if (strcmp(pessoa.nome_ies_titulacao, "Unimontes") != 0)
@@ -205,38 +198,37 @@ int verificar(Pessoa pessoa)
 
     if (strcmp(pessoa.pais_ies_titulacao, "Brasil") != 0)
     {
-        // Exceto se for da Unimontes
         if (strcmp(pessoa.nome_ies_titulacao, "Unimontes") != 0)
         {
             return 0; // Titulado fora do Brasil e não é da Unimontes
         }
     }
 
-    // Verificação de destino especial para Unimontes
     if (strcmp(pessoa.nome_ies_titulacao, "Unimontes") == 0)
     {
-        return 2; // Acesso especial, retorna 2
+        return 2; // Acesso especial, é da Unimontes
     }
 
-    // Verificação de grau acadêmico
     if (strcmp(pessoa.grau_academico, "Mestrado") == 0)
     {
-        return 1; // Mestrado, destino 1
+        return 1;
     }
     else if (strcmp(pessoa.grau_academico, "Doutorado") == 0)
     {
-        return 2; // Doutorado, destino 2
+        return 2;
     }
     else
     {
-        return 3; // Qualquer outro grau acadêmico, destino 3
+        return 3;
     }
 
-    return 0; // Caso não se enquadre em nenhuma regra
+    return 0;
 }
 
 int main()
 {
+
+    long long codigo;
 
     FILE *pessoas = abre_arquivo("pessoas.bin");
     if (!pessoas)
@@ -263,14 +255,20 @@ int main()
         printf("Arquivo da árvore já existe. Para reorganizar, apague o arquivo e rode o programa novamente.\n");
     }
 
-    // Busca na árvore
-    long long codigo;
-    printf("Digite o código para buscar: ");
-    scanf("%lld", &codigo);
-
-    if (!buscaNoArquivo(arvore, codigo))
+    while (1)
     {
-        printf("Código não encontrado.\n");
+        printf("Digite o código para buscar (ou 0 para sair): ");
+        scanf("%lld", &codigo);
+
+        if (codigo == 0)
+        {
+            break;
+        }
+        
+        if (!buscaNoArquivo(arvore, codigo))
+        {
+            printf("Código não encontrado.\n");
+        }
     }
 
     fclose(arvore);
